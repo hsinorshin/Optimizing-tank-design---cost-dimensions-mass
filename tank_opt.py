@@ -16,27 +16,34 @@ other=data['other']
 def buckle(type, p_ext, p_int, g=9.81,t, l,R=0.15,v,E):
    '''block for tank buckling '''
 
+    
    #density of propellent 
    rho=type['density']
    #k_s is buckling coefficient 
    k_s = 0.85((2*l**2/R*t)*(1-v**2))**0.75
+
    #Buckling strength calculated using Baker's buckling criteria 
-   p_cr= (math.pi**2 *k_s*E)/(12(1-v**2))*(t/L)**2 ##what is L , is it l or l+2R?
-   #A for cylinder with hemispherical ends 
-   #NOT SURE WHAT IS H IN DOCUMENT PLS CHECK
+
+   p_cr= (math.pi**2 *k_s*E)/(12(1-v**2))*(t/L)**2 # we only consider the the buckling longitudinally for now
+   
+   #NOT SURE WHAT IS H IN DOCUMENT PLS CHECK - H is the length here (assuming uniform pressure distribution inside)
+  
    A = ((math.pi*(2*r)**2)/4) + (math.pi*2*r*l**2) #replaced H with l 
    hoop_stress= (0.5(p_int*2*r)+(rho*g*l))/t
    axial_stress =((0.5*p_int*2*r) + (rho*g*l))/t - p_int*A
 
+   re_factor =  p_int/E * (2*R/(2*t))**2 # recurring factor in the delta p_cr equation
+   del_p_cr = 0.051 * np.log(re_factor) - 0.098*(re_factor) + 0.273 # delta p_cr calculated using bruhn's data - high corelation equation
 
-   if hoop_stress>p_cr or axial_stress>p_cr:
+   p_final = p_cr + del_p_cr # final buckling load
+
+   if hoop_stress>p_final or axial_stress>p_final:
        return False
-    
    else:
        return True 
 
 
-def tank_dimension(type,p,T,R,r ):
+def tank_dimension(type,p,T,R,r,p_ext, p_int,v):
     '''block of function to determine R-r depending on stress/buckling analysis , where R is a constant'''
     
     #assume ideal gas law PV=nR_gT , validity should be checked
@@ -56,13 +63,13 @@ def tank_dimension(type,p,T,R,r ):
         return ('a different value of r should be chosen')
 
 
-def tank_mass(type,tank_dimensions(type,p,T,R,r)):
+def tank_mass(type,tank_dimensions): # python will identify tank_dimensions as a function when we input the parameter
     '''tank mass block''' 
 
-    t=dimensions['Tank thickness']
-    l=dimensions['tank length']
-    r=dimensions['internal radius']
-    R=dimensions['external radius']
+    t=tank_dimensions['Tank thickness']
+    l=tank_dimensions['tank length']
+    r=tank_dimensions['internal radius']
+    R=tank_dimensions['external radius']
     density=type['density']
 
     #Volume of internal tank dimensions = 2*pi*r*l + pi*r**2
@@ -74,7 +81,7 @@ def tank_mass(type,tank_dimensions(type,p,T,R,r)):
     return tank_mass 
 
 
-def tank_cost (type,limit,tank_mass(type,tank_dimensions(type,p,T,R,r))):
+def tank_cost(type,limit,tank_mass): # python will identify tank_dimensions as a function when we input the parameter
     '''cost block'''
     cost_per_unit_mass=type['cost']
     cost=cost_per_unit_mass*tank_mass
