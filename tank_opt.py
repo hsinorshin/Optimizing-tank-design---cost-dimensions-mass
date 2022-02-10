@@ -13,7 +13,7 @@ other=data['other']
 
 
 
-def buckle(type, p_ext, p_int, g=9.81,t, l,R=0.15,v,E):
+def buckle(type, t, l,r, p_ext, p_int,v, E, g=9.81 ,R=0.15 ):
    '''block for tank buckling '''
 
     
@@ -39,18 +39,18 @@ def buckle(type, p_ext, p_int, g=9.81,t, l,R=0.15,v,E):
 
    if hoop_stress>p_final or axial_stress>p_final:
        return False
+    
    else:
        return True 
 
 
-def tank_dimension(type,p,T,R,r,p_ext, p_int,v):
+def tank_dimension(type,R,r,p_ext, p_int,v):
     '''block of function to determine R-r depending on stress/buckling analysis , where R is a constant'''
     
-    #assume ideal gas law PV=nR_gT , validity should be checked
-    n=type['n']
-    R_g=8.31
-    P=p
-    V_int = (n*R_g*T)/P
+    #Volume of propellent
+    V_prop=type["liq_volume"]
+    #10% ullage 
+    V_int=(1.1*V_prop)
     #length of tank based on r
     l= (V_int- math.pi*r**2)/(2*math.pi*r)
     #thickness of tank = R-r 
@@ -59,7 +59,9 @@ def tank_dimension(type,p,T,R,r,p_ext, p_int,v):
     if buckle(fuel,p_ext,p_int,t,l,R,v)==True:
         dimensions={'Tank thickness':t,'tank length':l,'internal radius':r,'external radius':R}
         return dimensions
+
     else:
+        # test w array 
         return ('a different value of r should be chosen')
 
 
@@ -81,7 +83,7 @@ def tank_mass(type,tank_dimensions): # python will identify tank_dimensions as a
     return tank_mass 
 
 
-def tank_cost(type,limit,tank_mass): # python will identify tank_dimensions as a function when we input the parameter
+def tank_cost(type,limit,tank_mass): # python will identify tank_mass as a function when we input the parameter
     '''cost block'''
     cost_per_unit_mass=type['cost']
     cost=cost_per_unit_mass*tank_mass
