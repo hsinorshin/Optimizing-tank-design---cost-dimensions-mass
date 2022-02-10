@@ -29,7 +29,7 @@ def buckle(type, t, l,r, p_ext, p_int,v, E, g=9.81 ,R=0.15 ):
    #NOT SURE WHAT IS H IN DOCUMENT PLS CHECK - H is the length here (assuming uniform pressure distribution inside)
   
    A = ((math.pi*(2*r)**2)/4) + (math.pi*2*r*l**2) #replaced H with l 
-   hoop_stress= (0.5(p_int*2*r)+(rho*g*l))/t
+   hoop_stress= (0.5(p_int*2*r)+(rho*g*l))/t 
    axial_stress =((0.5*p_int*2*r) + (rho*g*l))/t - p_int*A
 
    re_factor =  p_int/E * (2*R/(2*t))**2 # recurring factor in the delta p_cr equation
